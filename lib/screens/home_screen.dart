@@ -10,10 +10,16 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int totalSeconds = 1500;
+  static const int maxSeconds = 63;
+  int totalSeconds = maxSeconds, cycle = 0;
+  bool isRunning = false;
   late Timer timer;
 
   void onTick(Timer timer) {
+    if (totalSeconds == 0) {
+      cycle += 1;
+      totalSeconds = maxSeconds;
+    }
     setState(() {
       totalSeconds -= 1;
     });
@@ -24,6 +30,24 @@ class _HomeScreenState extends State<HomeScreen> {
       const Duration(seconds: 1),
       onTick,
     );
+    setState(() {
+      isRunning = true;
+    });
+  }
+
+  void onPausePressed() {
+    timer.cancel();
+    setState(() {
+      isRunning = false;
+    });
+  }
+
+  String format(int seconds) {
+    var duration = Duration(seconds: seconds);
+    String tmp = duration.toString().split(".").first;
+    String sec = tmp.split(":").last;
+    String min = tmp.substring(2, 4);
+    return "$min:$sec";
   }
 
   @override
@@ -37,7 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Container(
               alignment: Alignment.bottomCenter,
               child: Text(
-                "$totalSeconds",
+                format(totalSeconds),
                 style: TextStyle(
                     color: Theme.of(context).cardColor,
                     fontSize: 89,
@@ -52,8 +76,10 @@ class _HomeScreenState extends State<HomeScreen> {
               child: IconButton(
                   iconSize: 100,
                   color: Theme.of(context).cardColor,
-                  onPressed: onStartPressed,
-                  icon: const Icon(Icons.play_circle_outline_rounded)),
+                  onPressed: isRunning ? onPausePressed : onStartPressed,
+                  icon: Icon(isRunning
+                      ? Icons.pause_circle_outline_rounded
+                      : Icons.play_circle_outline_rounded)),
             ),
           ),
           Flexible(
@@ -79,7 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         Text(
-                          "0",
+                          "$cycle",
                           style: TextStyle(
                             fontSize: 50,
                             color:
